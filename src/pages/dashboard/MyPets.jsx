@@ -252,16 +252,17 @@ const MyPets = () => {
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, pet: null })}
         title="Delete Pet"
+        size="sm"
       >
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-300">
-            Are you sure you want to delete <strong>{deleteModal.pet?.name}</strong>? 
-            This action cannot be undone.
+            Are you sure you want to delete <strong>{deleteModal.pet?.name}</strong>? This action cannot be undone.
           </p>
           <div className="flex space-x-3">
             <Button
               variant="outline"
               onClick={() => setDeleteModal({ isOpen: false, pet: null })}
+              className="flex-1"
             >
               Cancel
             </Button>
@@ -269,6 +270,7 @@ const MyPets = () => {
               variant="danger"
               onClick={() => deleteMutation.mutate(deleteModal.pet._id)}
               disabled={deleteMutation.isPending}
+              className="flex-1"
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>

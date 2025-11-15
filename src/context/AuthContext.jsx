@@ -30,7 +30,18 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken();
         localStorage.setItem('token', token);
-        setUser(firebaseUser);
+        
+        try {
+          const dbUser = await authAPI.getMe();
+          setUser({
+            ...firebaseUser,
+            role: dbUser.role,
+            uid: firebaseUser.uid
+          });
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+          setUser(firebaseUser);
+        }
       } else {
         localStorage.removeItem('token');
         setUser(null);

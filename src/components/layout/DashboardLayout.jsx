@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -11,16 +11,23 @@ import {
   Users, 
   Settings,
   PawPrint,
-  Gift
+  Gift,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../utils/cn';
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   const userNavigation = [
     { name: 'Add a Pet', href: '/dashboard/add-pet', icon: Plus },
@@ -29,6 +36,7 @@ const DashboardLayout = () => {
     { name: 'Create Donation Campaign', href: '/dashboard/create-donation', icon: DollarSign },
     { name: 'My Donation Campaigns', href: '/dashboard/my-donations', icon: Gift },
     { name: 'My Donations', href: '/dashboard/donations-made', icon: Heart },
+    { name: 'Refund Requests', href: '/dashboard/refund-requests', icon: DollarSign },
   ];
 
   const adminNavigation = [
@@ -134,6 +142,14 @@ const DashboardLayout = () => {
                   </p>
                 </div>
               </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title="Logout"
+              >
+                <LogOut size={20} />
+                <span className="hidden sm:block text-sm">Logout</span>
+              </button>
             </div>
           </div>
         </header>

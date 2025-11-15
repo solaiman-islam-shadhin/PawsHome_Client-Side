@@ -41,7 +41,7 @@ export const donationAPI = {
   deleteCampaign: (id) => api.delete(`/donations/${id}`).then(res => res.data),
   pauseCampaign: (id) => api.patch(`/donations/${id}/pause`).then(res => res.data),
   donate: ({ campaignId, ...data }) => api.post(`/donations/${campaignId}/donate`, data).then(res => res.data),
-  refundDonation: (id) => api.delete(`/donations/${id}/refund`).then(res => res.data),
+  refundDonation: ({ campaignId, donor }) => api.patch(`/donations/${campaignId}/refund`, { donor }).then(res => res.data),
   getMyCampaigns: () => api.get('/donations/user/my-campaigns').then(res => res.data),
   getMyDonations: () => api.get('/donations/user/my-donations').then(res => res.data),
   getAllCampaignsAdmin: () => api.get('/donations/admin/all').then(res => res.data),

@@ -13,7 +13,6 @@ const MyDonations = () => {
     queryFn: donationAPI.getMyDonations,
   });
 
-  // Extract user's donations from campaigns
   const campaigns = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
   const donations = campaigns.flatMap(campaign => 
     campaign.donations?.map(donation => ({
@@ -22,19 +21,38 @@ const MyDonations = () => {
       petImage: campaign.petImage,
       creator: campaign.creator,
       amount: donation.amount,
-      donatedAt: donation.donatedAt
+      donatedAt: donation.donatedAt,
+      donor: donation.donor,
+      refundRequested: donation.refundRequested || false
     })) || []
   );
 
   const refundMutation = useMutation({
     mutationFn: donationAPI.refundDonation,
+    onMutate: (variables) => {
+      queryClient.setQueryData(['my-donations'], (oldData) => {
+        if (!oldData) return oldData;
+        const campaigns = Array.isArray(oldData?.data) ? oldData.data : (Array.isArray(oldData) ? oldData : []);
+        const updated = campaigns.map(campaign => {
+          if (campaign._id === variables.campaignId) {
+            return {
+              ...campaign,
+              donations: campaign.donations?.map(d => 
+                d.donor === variables.donor ? { ...d, refundRequested: true } : d
+              ) || []
+            };
+          }
+          return campaign;
+        });
+        return Array.isArray(oldData?.data) ? { ...oldData, data: updated } : updated;
+      });
+    },
     onSuccess: () => {
-      toast.success('Refund processed successfully');
-      queryClient.invalidateQueries(['my-donations']);
-      queryClient.invalidateQueries(['donations']);
+      toast.success('Refund requested successfully');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to process refund');
+      toast.error(error.response?.data?.message || 'Failed to request refund');
+      queryClient.invalidateQueries({ queryKey: ['my-donations'] });
     },
   });
 
@@ -65,7 +83,7 @@ const MyDonations = () => {
         </p>
       </div>
 
-      {donations.length === 0 ? (
+      {!donations || donations.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
           <div className="text-6xl mb-4">💝</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -97,13 +115,16 @@ const MyDonations = () => {
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {donations.map((donation) => (
-                  <tr key={donation.campaignId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                {donations.map((donation, idx) => (
+                  <tr key={`${donation.campaignId}-${donation.donor}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-3">
                         <img
@@ -139,15 +160,24 @@ const MyDonations = () => {
                       {new Date(donation.donatedAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        donation.refundRequested
+                          ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      }`}>
+                        {donation.refundRequested ? 'Refund Requested' : 'Completed'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => refundMutation.mutate(donation.campaignId)}
-                        disabled={refundMutation.isPending}
+                        onClick={() => refundMutation.mutate({ campaignId: donation.campaignId, donor: donation.donor })}
+                        disabled={refundMutation.isPending || donation.refundRequested}
                         className="flex items-center space-x-2"
                       >
                         <RefreshCw size={16} />
-                        <span>Request Refund</span>
+                        <span>{donation.refundRequested ? 'Requested' : 'Request Refund'}</span>
                       </Button>
                     </td>
                   </tr>
@@ -156,7 +186,6 @@ const MyDonations = () => {
             </table>
           </div>
 
-          {/* Summary */}
           <div className="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600 dark:text-gray-300">
@@ -172,7 +201,6 @@ const MyDonations = () => {
         </div>
       )}
 
-      {/* Refund Policy */}
       <div className="mt-8 bg-blue-50 dark:bg-blue-900 rounded-lg p-6">
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
           Refund Policy

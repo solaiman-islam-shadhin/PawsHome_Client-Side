@@ -2,11 +2,18 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useTheme } from '../../context/ThemeContext';
 
-export const PetCardSkeleton = () => {
+const SkeletonWrapper = ({ children }) => {
   const { isDark } = useTheme();
-  
   return (
     <SkeletonTheme baseColor={isDark ? "#374151" : "#f3f4f6"} highlightColor={isDark ? "#4b5563" : "#e5e7eb"}>
+      {children}
+    </SkeletonTheme>
+  );
+};
+
+export const PetCardSkeleton = () => {
+  return (
+    <SkeletonWrapper>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
         <Skeleton height={200} />
         <div className="p-4 space-y-2">
@@ -16,35 +23,43 @@ export const PetCardSkeleton = () => {
           <Skeleton height={36} />
         </div>
       </div>
-    </SkeletonTheme>
+    </SkeletonWrapper>
+  );
+};
+
+export const PetGridSkeleton = ({ count = 6 }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <PetCardSkeleton key={i} />
+      ))}
+    </div>
   );
 };
 
 export const TableSkeleton = ({ rows = 5, cols = 4 }) => {
-  const { isDark } = useTheme();
-  
   return (
-    <SkeletonTheme baseColor={isDark ? "#374151" : "#f3f4f6"} highlightColor={isDark ? "#4b5563" : "#e5e7eb"}>
-      <div className="space-y-2">
-        {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex space-x-4">
-            {Array.from({ length: cols }).map((_, j) => (
-              <div key={j} className="flex-1">
-                <Skeleton height={40} />
-              </div>
-            ))}
-          </div>
-        ))}
+    <SkeletonWrapper>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className="space-y-2 p-4">
+          {Array.from({ length: rows }).map((_, i) => (
+            <div key={i} className="flex space-x-4">
+              {Array.from({ length: cols }).map((_, j) => (
+                <div key={j} className="flex-1">
+                  <Skeleton height={40} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
-    </SkeletonTheme>
+    </SkeletonWrapper>
   );
 };
 
 export const ProfileSkeleton = () => {
-  const { isDark } = useTheme();
-  
   return (
-    <SkeletonTheme baseColor={isDark ? "#374151" : "#f3f4f6"} highlightColor={isDark ? "#4b5563" : "#e5e7eb"}>
+    <SkeletonWrapper>
       <div className="flex items-center space-x-4">
         <Skeleton circle height={40} width={40} />
         <div className="space-y-1">
@@ -52,6 +67,52 @@ export const ProfileSkeleton = () => {
           <Skeleton height={14} width={80} />
         </div>
       </div>
-    </SkeletonTheme>
+    </SkeletonWrapper>
+  );
+};
+
+export const FormSkeleton = () => {
+  return (
+    <SkeletonWrapper>
+      <div className="space-y-4">
+        <Skeleton height={40} />
+        <Skeleton height={40} />
+        <Skeleton height={100} />
+        <Skeleton height={40} width="30%" />
+      </div>
+    </SkeletonWrapper>
+  );
+};
+
+export const DetailPageSkeleton = () => {
+  return (
+    <SkeletonWrapper>
+      <div className="space-y-6">
+        <Skeleton height={300} />
+        <div className="space-y-4">
+          <Skeleton height={24} width="60%" />
+          <Skeleton height={16} width="40%" />
+          <Skeleton height={16} />
+          <Skeleton height={16} />
+          <Skeleton height={40} width="30%" />
+        </div>
+      </div>
+    </SkeletonWrapper>
+  );
+};
+
+export const CardListSkeleton = ({ count = 3 }) => {
+  return (
+    <SkeletonWrapper>
+      <div className="space-y-4">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
+            <Skeleton height={20} width="50%" />
+            <Skeleton height={16} width="70%" />
+            <Skeleton height={16} width="60%" />
+          </div>
+        ))}
+      </div>
+    </SkeletonWrapper>
   );
 };
