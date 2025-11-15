@@ -8,10 +8,12 @@ import { TableSkeleton } from '../../components/ui/LoadingSkeleton';
 const AdoptionRequests = () => {
   const queryClient = useQueryClient();
 
-  const { data: requests, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['adoption-requests'],
     queryFn: adoptionAPI.getRequestsForMyPets,
   });
+
+  const requests = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
 
   const acceptMutation = useMutation({
     mutationFn: adoptionAPI.acceptRequest,
@@ -56,7 +58,7 @@ const AdoptionRequests = () => {
         </p>
       </div>
 
-      {!requests || requests.length === 0 ? (
+      {requests.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
           <div className="text-6xl mb-4">📋</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">

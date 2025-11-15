@@ -12,10 +12,12 @@ const MyDonationCampaigns = () => {
   const [donatorsModal, setDonatorsModal] = useState({ isOpen: false, campaign: null });
   const queryClient = useQueryClient();
 
-  const { data: campaigns, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['my-donation-campaigns'],
     queryFn: donationAPI.getMyCampaigns,
   });
+
+  const campaigns = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
 
   const pauseMutation = useMutation({
     mutationFn: donationAPI.pauseCampaign,
@@ -72,7 +74,7 @@ const MyDonationCampaigns = () => {
         </Link>
       </div>
 
-      {!campaigns || campaigns.length === 0 ? (
+      {campaigns.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
           <div className="text-6xl mb-4">💝</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
