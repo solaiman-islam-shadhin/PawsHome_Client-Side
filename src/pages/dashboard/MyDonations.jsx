@@ -8,10 +8,23 @@ import { TableSkeleton } from '../../components/ui/LoadingSkeleton';
 const MyDonations = () => {
   const queryClient = useQueryClient();
 
-  const { data: donations, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['my-donations'],
     queryFn: donationAPI.getMyDonations,
   });
+
+  // Extract user's donations from campaigns
+  const campaigns = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
+  const donations = campaigns.flatMap(campaign => 
+    campaign.donations?.map(donation => ({
+      campaignId: campaign._id,
+      petName: campaign.petName,
+      petImage: campaign.petImage,
+      creator: campaign.creator,
+      amount: donation.amount,
+      donatedAt: donation.donatedAt
+    })) || []
+  );
 
   const refundMutation = useMutation({
     mutationFn: donationAPI.refundDonation,
@@ -52,7 +65,7 @@ const MyDonations = () => {
         </p>
       </div>
 
-      {!donations || donations.length === 0 ? (
+      {donations.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
           <div className="text-6xl mb-4">💝</div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
