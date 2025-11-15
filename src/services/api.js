@@ -6,7 +6,6 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Add token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -15,60 +14,61 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Pet API
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
 export const petAPI = {
-  getAllPets: (params) => api.get('/pets', { params }),
-  getPetById: (id) => api.get(`/pets/${id}`),
-  createPet: (data) => api.post('/pets', data),
-  updatePet: (id, data) => api.put(`/pets/${id}`, data),
-  deletePet: (id) => api.delete(`/pets/${id}`),
-  adoptPet: (id, data) => api.post(`/pets/${id}/adopt`, data),
-  markAsAdopted: (id) => api.patch(`/pets/${id}/adopted`),
-  getMyPets: (params) => api.get('/pets/user/my-pets', { params }),
-  getAllPetsAdmin: () => api.get('/pets/admin/all'),
+  getAllPets: (params) => api.get('/pets', { params }).then(res => res.data),
+  getPetById: (id) => api.get(`/pets/${id}`).then(res => res.data),
+  createPet: (data) => api.post('/pets', data).then(res => res.data),
+  updatePet: (id, data) => api.put(`/pets/${id}`, data).then(res => res.data),
+  deletePet: (id) => api.delete(`/pets/${id}`).then(res => res.data),
+  markAsAdopted: (id) => api.patch(`/pets/${id}/adopted`).then(res => res.data),
+  getMyPets: (params) => api.get('/pets/user/my-pets', { params }).then(res => res.data),
+  getAllPetsAdmin: () => api.get('/pets/admin/all').then(res => res.data),
 };
 
-// Donation API
 export const donationAPI = {
-  getAllCampaigns: (params) => api.get('/donations', { params }),
-  getCampaignById: (id) => api.get(`/donations/${id}`),
-  createCampaign: (data) => api.post('/donations', data),
-  updateCampaign: (id, data) => api.put(`/donations/${id}`, data),
-  deleteCampaign: (id) => api.delete(`/donations/${id}`),
-  pauseCampaign: (id) => api.patch(`/donations/${id}/pause`),
-  donate: ({ campaignId, ...data }) => api.post(`/donations/${campaignId}/donate`, data),
-  refundDonation: (id) => api.delete(`/donations/${id}/refund`),
-  getMyCampaigns: () => api.get('/donations/user/my-campaigns'),
-  getMyDonations: () => api.get('/donations/user/my-donations'),
-  getAllCampaignsAdmin: () => api.get('/donations/admin/all'),
-  getRecommendations: (id) => api.get(`/donations/${id}/recommended`),
+  getAllCampaigns: (params) => api.get('/donations', { params }).then(res => res.data),
+  getCampaignById: (id) => api.get(`/donations/${id}`).then(res => res.data),
+  createCampaign: (data) => api.post('/donations', data).then(res => res.data),
+  updateCampaign: (id, data) => api.put(`/donations/${id}`, data).then(res => res.data),
+  deleteCampaign: (id) => api.delete(`/donations/${id}`).then(res => res.data),
+  pauseCampaign: (id) => api.patch(`/donations/${id}/pause`).then(res => res.data),
+  donate: ({ campaignId, ...data }) => api.post(`/donations/${campaignId}/donate`, data).then(res => res.data),
+  refundDonation: (id) => api.delete(`/donations/${id}/refund`).then(res => res.data),
+  getMyCampaigns: () => api.get('/donations/user/my-campaigns').then(res => res.data),
+  getMyDonations: () => api.get('/donations/user/my-donations').then(res => res.data),
+  getAllCampaignsAdmin: () => api.get('/donations/admin/all').then(res => res.data),
+  getRecommendations: (id) => api.get(`/donations/${id}/recommended`).then(res => res.data),
 };
 
-// User API
 export const userAPI = {
-  getProfile: () => api.get('/users/profile'),
-  updateProfile: (data) => api.put('/users/profile', data),
-  getAllUsers: () => api.get('/users'),
-  makeAdmin: (id) => api.patch(`/users/${id}/make-admin`),
-  banUser: (id) => api.patch(`/users/${id}/ban`),
+  getProfile: () => api.get('/users/profile').then(res => res.data),
+  updateProfile: (data) => api.put('/users/profile', data).then(res => res.data),
+  getAllUsers: () => api.get('/users').then(res => res.data),
+  makeAdmin: (id) => api.patch(`/users/${id}/make-admin`).then(res => res.data),
+  banUser: (id) => api.patch(`/users/${id}/ban`).then(res => res.data),
 };
 
-// Adoption API
 export const adoptionAPI = {
-  createAdoptionRequest: (data) => api.post('/adoptions', data),
-  getMyRequests: () => api.get('/adoptions/my-requests'),
-  getRequestsForMyPets: () => api.get('/adoptions/for-my-pets'),
-  acceptRequest: (id) => api.patch(`/adoptions/${id}/accept`),
-  rejectRequest: (id) => api.patch(`/adoptions/${id}/reject`),
+  createAdoptionRequest: (data) => api.post('/adoptions', data).then(res => res.data),
+  getMyRequests: () => api.get('/adoptions/my-requests').then(res => res.data),
+  getRequestsForMyPets: () => api.get('/adoptions/for-my-pets').then(res => res.data),
+  acceptRequest: (id) => api.patch(`/adoptions/${id}/accept`).then(res => res.data),
+  rejectRequest: (id) => api.patch(`/adoptions/${id}/reject`).then(res => res.data),
 };
 
-// Auth API
 export const authAPI = {
-  register: (data) => api.post('/auth/register', data),
-  getMe: () => api.get('/auth/me'),
+  register: (data) => api.post('/auth/register', data).then(res => res.data),
+  getMe: () => api.get('/auth/me').then(res => res.data),
 };
 
-// Image upload
 export const uploadImage = async (file) => {
   const formData = new FormData();
   formData.append('image', file);

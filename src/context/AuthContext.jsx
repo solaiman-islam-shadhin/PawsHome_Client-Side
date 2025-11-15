@@ -9,7 +9,7 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { authAPI, uploadImage } from '../services/api';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -30,15 +30,7 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken();
         localStorage.setItem('token', token);
-        
-        // Get user data from backend
-        try {
-          const response = await authAPI.getMe();
-          setUser({ ...firebaseUser, ...response.data });
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setUser(firebaseUser);
-        }
+        setUser(firebaseUser);
       } else {
         localStorage.removeItem('token');
         setUser(null);
@@ -62,16 +54,19 @@ export const AuthProvider = ({ children }) => {
       photoURL: photoURL
     });
 
-    // Save user to backend
     const token = await result.user.getIdToken();
     localStorage.setItem('token', token);
     
-    await authAPI.register({
-      name,
-      email,
-      photoURL,
-      role: 'user'
-    });
+    try {
+      await authAPI.register({
+        name,
+        email,
+        photoURL,
+        role: 'user'
+      });
+    } catch (error) {
+      console.error('Error saving user to database:', error);
+    }
 
     return result;
   };
@@ -80,16 +75,19 @@ export const AuthProvider = ({ children }) => {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     
-    // Save user to backend if new
     const token = await result.user.getIdToken();
     localStorage.setItem('token', token);
     
-    await authAPI.register({
-      name: result.user.displayName,
-      email: result.user.email,
-      photoURL: result.user.photoURL,
-      role: 'user'
-    });
+    try {
+      await authAPI.register({
+        name: result.user.displayName,
+        email: result.user.email,
+        photoURL: result.user.photoURL,
+        role: 'user'
+      });
+    } catch (error) {
+      console.error('Error saving user to database:', error);
+    }
 
     return result;
   };

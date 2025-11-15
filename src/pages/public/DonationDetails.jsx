@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { ArrowLeft, Calendar, Target, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Users } from 'lucide-react';
 import { donationAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import DonationForm from '../../components/forms/DonationForm';
@@ -14,6 +15,7 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const DonationDetails = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [showDonateModal, setShowDonateModal] = useState(false);
 
   const { data: campaign, isLoading, error } = useQuery({
@@ -71,15 +73,16 @@ const DonationDetails = () => {
     );
   }
 
+  const isCreator = user && campaign.creator === user.uid;
   const progressPercentage = getProgressPercentage(campaign.currentAmount, campaign.maxAmount);
   const daysLeft = getDaysLeft(campaign.lastDate);
   const isExpired = daysLeft === 0;
   const isPaused = campaign.isPaused;
+  const canDonate = !isExpired && !isPaused && !isCreator;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
         <Link
           to="/donations"
           className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 mb-6"
@@ -90,7 +93,6 @@ const DonationDetails = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Campaign Image */}
             <div className="relative">
               <img
                 src={campaign.petImage}
@@ -114,7 +116,6 @@ const DonationDetails = () => {
               </div>
             </div>
 
-            {/* Campaign Details */}
             <div className="p-8">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 Help {campaign.petName}
@@ -124,7 +125,6 @@ const DonationDetails = () => {
                 {campaign.shortDescription}
               </p>
 
-              {/* Progress Section */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -147,7 +147,6 @@ const DonationDetails = () => {
                 </p>
               </div>
 
-              {/* Campaign Stats */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
                   <Calendar size={20} className="text-blue-600" />
@@ -166,8 +165,15 @@ const DonationDetails = () => {
                 </div>
               </div>
 
-              {/* Donate Button */}
-              {!isExpired && !isPaused ? (
+              {isCreator && (
+                <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
+                  <p className="text-blue-800 dark:text-blue-200 font-medium">
+                    This is your campaign. You cannot donate to your own campaign.
+                  </p>
+                </div>
+              )}
+
+              {canDonate ? (
                 <Button
                   onClick={() => setShowDonateModal(true)}
                   className="w-full mb-4"
@@ -178,12 +184,11 @@ const DonationDetails = () => {
               ) : (
                 <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 mb-4">
                   <p className="text-gray-600 dark:text-gray-300 font-medium text-center">
-                    {isPaused ? 'This campaign is currently paused' : 'This campaign has ended'}
+                    {isPaused ? 'This campaign is currently paused' : isExpired ? 'This campaign has ended' : ''}
                   </p>
                 </div>
               )}
 
-              {/* Creator Info */}
               <div className="flex items-center space-x-3 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <img
                   src={campaign.creator?.photoURL || '/default-avatar.png'}
@@ -202,7 +207,6 @@ const DonationDetails = () => {
             </div>
           </div>
 
-          {/* Long Description */}
           <div className="p-8 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Campaign Story
@@ -213,7 +217,6 @@ const DonationDetails = () => {
             />
           </div>
 
-          {/* Recent Donors */}
           {campaign.donations && campaign.donations.length > 0 && (
             <div className="p-8 border-t border-gray-200 dark:border-gray-700">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -247,7 +250,6 @@ const DonationDetails = () => {
           )}
         </div>
 
-        {/* Recommended Campaigns */}
         {recommendations && recommendations.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
@@ -297,7 +299,6 @@ const DonationDetails = () => {
           </div>
         )}
 
-        {/* Donation Modal */}
         <Modal
           isOpen={showDonateModal}
           onClose={() => setShowDonateModal(false)}

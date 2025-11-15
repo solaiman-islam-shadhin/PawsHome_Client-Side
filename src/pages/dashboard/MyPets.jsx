@@ -21,7 +21,7 @@ const MyPets = () => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, pet: null });
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['my-pets', pagination.pageIndex + 1],
     queryFn: () => petAPI.getMyPets({ 
       page: pagination.pageIndex + 1, 
@@ -33,7 +33,7 @@ const MyPets = () => {
     mutationFn: petAPI.deletePet,
     onSuccess: () => {
       toast.success('Pet deleted successfully');
-      queryClient.invalidateQueries(['my-pets']);
+      queryClient.invalidateQueries({ queryKey: ['my-pets'] });
       setDeleteModal({ isOpen: false, pet: null });
     },
     onError: () => {
@@ -45,7 +45,7 @@ const MyPets = () => {
     mutationFn: petAPI.markAsAdopted,
     onSuccess: () => {
       toast.success('Pet adoption status updated');
-      queryClient.invalidateQueries(['my-pets']);
+      queryClient.invalidateQueries({ queryKey: ['my-pets'] });
     },
     onError: () => {
       toast.error('Failed to update adoption status');
@@ -141,6 +141,17 @@ const MyPets = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">My Added Pets</h1>
+        <div className="bg-red-50 dark:bg-red-900 p-4 rounded-lg">
+          <p className="text-red-800 dark:text-red-200">Error loading pets: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -155,84 +166,88 @@ const MyPets = () => {
         </Link>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map(header => (
-                    <th
-                      key={header.id}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <span>
-                          {header.isPlaceholder ? null : header.column.columnDef.header}
-                        </span>
-                        {header.column.getIsSorted() && (
-                          <span>
-                            {header.column.getIsSorted() === 'desc' ? (
-                              <ChevronDown size={16} />
-                            ) : (
-                              <ChevronUp size={16} />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {cell.column.columnDef.cell(cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {(!data?.data || data.data.length === 0) ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+          <p className="text-gray-600 dark:text-gray-300">No pets added yet. Start by adding your first pet!</p>
         </div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <th
+                        key={header.id}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>
+                            {header.isPlaceholder ? null : header.column.columnDef.header}
+                          </span>
+                          {header.column.getIsSorted() && (
+                            <span>
+                              {header.column.getIsSorted() === 'desc' ? (
+                                <ChevronDown size={16} />
+                              ) : (
+                                <ChevronUp size={16} />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {table.getRowModel().rows.map(row => (
+                  <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        {cell.column.columnDef.cell(cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Pagination */}
-        {data?.totalPages > 1 && (
-          <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700 dark:text-gray-300">
-                Showing {pagination.pageIndex * pagination.pageSize + 1} to{' '}
-                {Math.min((pagination.pageIndex + 1) * pagination.pageSize, data?.total || 0)} of{' '}
-                {data?.total || 0} results
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  Next
-                </Button>
+          {data?.totalPages > 1 && (
+            <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700 dark:text-gray-300">
+                  Showing {pagination.pageIndex * pagination.pageSize + 1} to{' '}
+                  {Math.min((pagination.pageIndex + 1) * pagination.pageSize, data?.total || 0)} of{' '}
+                  {data?.total || 0} results
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
-      {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, pet: null })}
@@ -247,7 +262,6 @@ const MyPets = () => {
             <Button
               variant="outline"
               onClick={() => setDeleteModal({ isOpen: false, pet: null })}
-              className="flex-1"
             >
               Cancel
             </Button>
@@ -255,7 +269,6 @@ const MyPets = () => {
               variant="danger"
               onClick={() => deleteMutation.mutate(deleteModal.pet._id)}
               disabled={deleteMutation.isPending}
-              className="flex-1"
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
             </Button>

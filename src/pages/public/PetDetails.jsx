@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast from 'react-hot-toast';
-import { Calendar, MapPin, User, Heart, ArrowLeft } from 'lucide-react';
+import { Calendar, MapPin, Heart, ArrowLeft } from 'lucide-react';
 import { petAPI, adoptionAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
@@ -29,6 +29,12 @@ const PetDetails = () => {
     queryFn: () => petAPI.getPetById(id),
   });
 
+  const { data: userPets } = useQuery({
+    queryKey: ['my-pets-check'],
+    queryFn: () => petAPI.getMyPets({ page: 1, limit: 1 }),
+    enabled: !!user,
+  });
+
   const {
     register,
     handleSubmit,
@@ -47,7 +53,7 @@ const PetDetails = () => {
       toast.success('Adoption request submitted successfully!');
       setShowAdoptModal(false);
       reset();
-      queryClient.invalidateQueries(['adoptions']);
+      queryClient.invalidateQueries({ queryKey: ['adoptions'] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to submit adoption request');
@@ -83,13 +89,13 @@ const PetDetails = () => {
     );
   }
 
-  const isOwner = user && pet.owner._id === user.id;
-  const canAdopt = user && !isOwner && !pet.adopted;
+  const isOwner = user && pet.owner === user.uid;
+  const hasAddedPets = userPets?.data && userPets.data.length > 0;
+  const canAdopt = user && !isOwner && !pet.adopted && hasAddedPets;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
         <Link
           to="/pets"
           className="inline-flex items-center text-blue-600 hover:text-blue-700 dark:text-blue-400 mb-6"
@@ -100,7 +106,6 @@ const PetDetails = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Pet Image */}
             <div className="relative">
               <img
                 src={pet.image}
@@ -123,7 +128,6 @@ const PetDetails = () => {
               </div>
             </div>
 
-            {/* Pet Details */}
             <div className="p-8">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
                 {pet.name}
@@ -139,18 +143,6 @@ const PetDetails = () => {
                   <MapPin size={20} className="mr-3 text-blue-600" />
                   <span>{pet.location}</span>
                 </div>
-                
-                <div className="flex items-center text-gray-600 dark:text-gray-300">
-                  <User size={20} className="mr-3 text-blue-600" />
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={pet.owner.photoURL || '/default-avatar.png'}
-                      alt={pet.owner.name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    />
-                    <span>{pet.owner.name}</span>
-                  </div>
-                </div>
               </div>
 
               <div className="mb-6">
@@ -162,6 +154,14 @@ const PetDetails = () => {
                 </p>
               </div>
 
+              {isOwner && (
+                <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
+                  <p className="text-blue-800 dark:text-blue-200 font-medium">
+                    This is your pet. You cannot request adoption for your own pet.
+                  </p>
+                </div>
+              )}
+
               {canAdopt && (
                 <Button
                   onClick={() => setShowAdoptModal(true)}
@@ -171,6 +171,19 @@ const PetDetails = () => {
                   <Heart size={20} className="mr-2" />
                   Adopt {pet.name}
                 </Button>
+              )}
+
+              {user && !hasAddedPets && !isOwner && !pet.adopted && (
+                <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-4">
+                  <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+                    You must add at least one pet before you can request adoption.
+                  </p>
+                  <Link to="/dashboard/add-pet">
+                    <Button variant="outline" className="mt-2 w-full">
+                      Add Your First Pet
+                    </Button>
+                  </Link>
+                </div>
               )}
 
               {pet.adopted && (
@@ -201,19 +214,17 @@ const PetDetails = () => {
             </div>
           </div>
 
-          {/* Long Description */}
           <div className="p-8 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               More About {pet.name}
             </h3>
             <div 
               className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-300"
-              dangerouslySetInnerHTML={{ __html: pet.longDescription }}
+              dangerouslySetInnerHTML={{ __html: pet.longDescription || '' }}
             />
           </div>
         </div>
 
-        {/* Adoption Modal */}
         <Modal
           isOpen={showAdoptModal}
           onClose={() => setShowAdoptModal(false)}
