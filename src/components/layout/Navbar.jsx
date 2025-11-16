@@ -79,6 +79,7 @@ const Navbar = () => {
                 <img
                   alt={user.displayName}
                   src={user.photoURL || '/default-avatar.png'}
+                  referrerPolicy='no-referrer'
                 />
               </div>
             </div>
