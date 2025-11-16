@@ -82,7 +82,7 @@ const AdoptionRequests = () => {
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                       <div>
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        <h3 className="text-xl font-semibold  text-gray-900 dark:text-white">
                           {request.petName}
                         </h3>
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
