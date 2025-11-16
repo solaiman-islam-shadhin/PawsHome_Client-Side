@@ -1,11 +1,9 @@
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { useTheme } from '../../context/ThemeContext';
 
 const SkeletonWrapper = ({ children }) => {
-  const { isDark } = useTheme();
   return (
-    <SkeletonTheme baseColor={isDark ? "#374151" : "#f3f4f6"} highlightColor={isDark ? "#4b5563" : "#e5e7eb"}>
+    <SkeletonTheme baseColor="hsl(var(--b2))" highlightColor="hsl(var(--b3))">
       {children}
     </SkeletonTheme>
   );
@@ -14,9 +12,9 @@ const SkeletonWrapper = ({ children }) => {
 export const PetCardSkeleton = () => {
   return (
     <SkeletonWrapper>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+      <div className="card bg-base-100 shadow-xl">
         <Skeleton height={200} />
-        <div className="p-4 space-y-2">
+        <div className="card-body space-y-2">
           <Skeleton height={20} width="70%" />
           <Skeleton height={16} width="50%" />
           <Skeleton height={16} width="60%" />
@@ -40,8 +38,8 @@ export const PetGridSkeleton = ({ count = 6 }) => {
 export const TableSkeleton = ({ rows = 5, cols = 4 }) => {
   return (
     <SkeletonWrapper>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div className="space-y-2 p-4">
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body space-y-2">
           {Array.from({ length: rows }).map((_, i) => (
             <div key={i} className="flex space-x-4">
               {Array.from({ length: cols }).map((_, j) => (
@@ -106,10 +104,12 @@ export const CardListSkeleton = ({ count = 3 }) => {
     <SkeletonWrapper>
       <div className="space-y-4">
         {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3">
-            <Skeleton height={20} width="50%" />
-            <Skeleton height={16} width="70%" />
-            <Skeleton height={16} width="60%" />
+          <div key={i} className="card bg-base-100 shadow-xl">
+            <div className="card-body space-y-3">
+              <Skeleton height={20} width="50%" />
+              <Skeleton height={16} width="70%" />
+              <Skeleton height={16} width="60%" />
+            </div>
           </div>
         ))}
       </div>

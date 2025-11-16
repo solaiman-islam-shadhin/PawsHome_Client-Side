@@ -1,11 +1,76 @@
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Heart, Users, Award, ArrowRight, PawPrint } from 'lucide-react';
+import { Heart, Users, Award, ArrowRight, PawPrint, Star, Shield, Clock } from 'lucide-react';
 import { petAPI } from '../../services/api';
 import Button from '../../components/ui/Button';
 import { PetCardSkeleton } from '../../components/ui/LoadingSkeleton';
 
+// Counter component
+const Counter = ({ end, duration = 2000, suffix = '' }) => {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const counterRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (counterRef.current) {
+      observer.observe(counterRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let startTime;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      
+      setCount(Math.floor(progress * end));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [isVisible, end, duration]);
+
+  return (
+    <span ref={counterRef} className="stat-value font-heading">
+      {count}{suffix}
+    </span>
+  );
+};
+
 const Home = () => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  const heroImages = [
+    'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=600&h=400&fit=crop',
+    'https://images.unsplash.com/photo-1574144611937-0df059b5ef3e?w=600&h=400&fit=crop'
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
+
   const { data: petsData, isLoading } = useQuery({
     queryKey: ['pets', { limit: 6 }],
     queryFn: () => petAPI.getAllPets({ limit: 6 })
@@ -23,60 +88,108 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                Find Your Perfect
-                <span className="block text-yellow-300">Furry Friend</span>
-              </h1>
-              <p className="text-xl mb-8 text-blue-100">
-                Connect with loving pets in need of forever homes. Every adoption saves a life and creates an unbreakable bond.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/pets">
-                  <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-                    Browse Pets
-                    <ArrowRight className="ml-2" size={20} />
-                  </Button>
-                </Link>
-                <Link to="/donations">
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                    Support a Cause
-                  </Button>
-                </Link>
-              </div>
+      <div className="hero py-20 bg-gradient-to-br from-primary to-secondary">
+        <div className="hero-content flex-col lg:flex-row max-w-7xl gap-12">
+          <div className="lg:w-3/5 relative order-2 lg:order-1">
+            <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+              {heroImages.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Pet ${index + 1}`}
+                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ${
+                    index === currentImageIndex 
+                      ? 'opacity-100 blur-0 scale-100' 
+                      : 'opacity-0 blur-sm scale-105'
+                  }`}
+                />
+              ))}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
-            <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Happy pets"
-                className="rounded-2xl shadow-2xl"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-white text-gray-900 p-4 rounded-xl shadow-lg">
-                <div className="flex items-center space-x-2">
-                  <Heart className="text-red-500" size={24} />
-                  <div>
-                    <p className="font-bold">500+ Pets</p>
-                    <p className="text-sm text-gray-600">Successfully Adopted</p>
+          </div>
+          <div className="lg:w-2/5 text-center lg:text-left text-primary-content order-1 lg:order-2">
+            <div className="badge badge-outline mb-4">
+              <Star className="w-4 h-4 mr-2" />
+              Trusted by 10,000+ families
+            </div>
+            <h1 className="text-5xl font-heading font-bold mb-6">
+              Your Perfect Pet Awaits
+            </h1>
+            <p className="py-6 font-body text-lg">
+              Discover loving companions ready to become part of your family. Every adoption creates a beautiful story.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link to="/pets">
+                <Button  className="btn-accent">
+                  <PawPrint className="mr-2" size={20} />
+                  Find Your Pet
+                </Button>
+              </Link>
+              <Link to="/donations">
+                <Button  variant="outline">
+                  Support Rescue
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <section className="py-20 bg-base-200">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-heading font-bold text-base-content mb-4">
+              Why Choose PawsHome?
+            </h2>
+            <p className="text-xl text-base-content/70 font-body">
+              We make pet adoption safe, simple, and meaningful for everyone involved.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Shield,
+                title: "Verified Pets",
+                description: "All pets are health-checked and verified by our trusted partners"
+              },
+              {
+                icon: Heart,
+                title: "Perfect Matches",
+                description: "Our smart matching system helps you find the ideal companion"
+              },
+              {
+                icon: Clock,
+                title: "24/7 Support",
+                description: "Get help anytime during your adoption journey and beyond"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="card bg-base-100 shadow-xl">
+                <div className="card-body items-center text-center">
+                  <div className="avatar placeholder mb-4">
+                    <div className="bg-primary flex justify-center items-center text-primary-content rounded-full w-16">
+                      <feature.icon size={40} />
+                    </div>
                   </div>
+                  <h3 className="card-title font-heading">{feature.title}</h3>
+                  <p className="font-body">{feature.description}</p>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Pet Categories */}
-      <section className="py-16 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Browse by Category
+      <section className="py-20 bg-base-100">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-heading font-bold text-base-content mb-4">
+              Find by Category
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Find the perfect companion that matches your lifestyle
+            <p className="text-xl text-base-content/70 font-body">
+              Discover the perfect companion that matches your lifestyle
             </p>
           </div>
           
@@ -85,15 +198,13 @@ const Home = () => {
               <Link
                 key={category.name}
                 to={`/pets?category=${category.name.toLowerCase()}`}
-                className="group bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 text-center hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors"
+                className="card bg-base-200 hover:bg-base-300 transition-colors cursor-pointer"
               >
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  {category.name}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {category.count}
-                </p>
+                <div className="card-body items-center text-center p-6">
+                  <div className="text-5xl mb-4">{category.icon}</div>
+                  <h3 className="font-heading font-bold">{category.name}</h3>
+                  <p className="text-sm text-base-content/70 font-body">{category.count} available</p>
+                </div>
               </Link>
             ))}
           </div>
@@ -101,14 +212,14 @@ const Home = () => {
       </section>
 
       {/* Featured Pets */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Meet Our Featured Pets
+      <section className="py-20 bg-base-200">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-heading font-bold text-base-content mb-4">
+              Meet Our Stars
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              These adorable companions are looking for their forever homes
+            <p className="text-xl text-base-content/70 font-body">
+              These amazing pets are ready to steal your heart
             </p>
           </div>
 
@@ -121,34 +232,39 @@ const Home = () => {
           ) : petsData?.data && petsData.data.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {petsData.data.slice(0, 6).map((pet) => (
-                <div key={pet._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                  <img
-                    src={pet.image}
-                    alt={pet.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {pet.name}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-2">
-                      {pet.age} years old • {pet.category}
-                    </p>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      📍 {pet.location}
-                    </p>
-                    <Link to={`/pets/${pet._id}`}>
-                      <Button className="w-full">
-                        View Details
-                      </Button>
-                    </Link>
+                <div key={pet._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                  <figure className="h-64">
+                    <img
+                      src={pet.image}
+                      alt={pet.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </figure>
+                  <div className="card-body">
+                    <div className="badge badge-primary">{pet.category}</div>
+                    <h3 className="card-title font-heading">{pet.name}</h3>
+                    <div className="flex items-center text-base-content/70 mb-4 font-body">
+                      <span className="mr-4">🎂 {pet.age} years</span>
+                      <span>📍 {pet.location}</span>
+                    </div>
+                    <div className="card-actions justify-end">
+                      <Link to={`/pets/${pet._id}`}>
+                        <Button>
+                          <Heart className="mr-2" size={18} />
+                          Meet {pet.name}
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-300 text-lg">No pets available at the moment. Check back soon!</p>
+              <div className="text-6xl mb-4">🐾</div>
+              <p className="text-base-content/70 text-lg font-body">
+                No pets available at the moment. Check back soon!
+              </p>
             </div>
           )}
 
@@ -163,126 +279,62 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-green-600 to-blue-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <PawPrint size={64} className="mx-auto mb-6 text-yellow-300" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Change a Life?
-          </h2>
-          <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Every pet deserves a loving home. By adopting, you're not just gaining a companion – 
-            you're saving a life and making room for another pet in need.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/pets">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-                Start Adopting Today
-              </Button>
-            </Link>
-            <Link to="/donations">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                Support Our Mission
-              </Button>
-            </Link>
+      {/* Stats Section */}
+      <section className="py-20 bg-neutral text-neutral-content">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="stats stats-vertical lg:stats-horizontal shadow w-full">
+            <div className="stat">
+              <div className="stat-figure text-primary">
+                <Heart size={32} />
+              </div>
+              <div className="stat-title">Pets Adopted</div>
+              <Counter end={750} suffix="+" />
+            </div>
+            
+            <div className="stat">
+              <div className="stat-figure text-secondary">
+                <Users size={32} />
+              </div>
+              <div className="stat-title">Happy Families</div>
+              <Counter end={500} suffix="+" />
+            </div>
+            
+            <div className="stat">
+              <div className="stat-figure text-accent">
+                <Award size={32} />
+              </div>
+              <div className="stat-title">Funds Raised</div>
+              <Counter end={50} suffix="K+" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* About Us */}
-      <section className="py-16 bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                About PawsHome
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                PawsHome is more than just a pet adoption platform – we're a community dedicated to 
-                connecting loving families with pets in need. Our mission is to reduce pet homelessness 
-                and ensure every animal finds their perfect match.
-              </p>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Through our platform, we've facilitated hundreds of successful adoptions and raised 
-                thousands of dollars for pet care and medical treatments. Join us in making a difference, 
-                one paw at a time.
-              </p>
-              <Link to="/about">
-                <Button variant="outline">
-                  Learn More About Us
+      {/* CTA Section */}
+      <section className="hero py-20 bg-gradient-to-r from-secondary to-accent">
+        <div className="hero-content text-center text-secondary-content">
+          <div className="max-w-md">
+            <PawPrint size={64} className="mx-auto mb-6" />
+            <h2 className="text-4xl font-heading font-bold mb-6">
+              Ready to Make a Difference?
+            </h2>
+            <p className="py-6 font-body">
+              Every adoption saves a life and creates space for another rescue. 
+              Start your journey to finding the perfect companion today.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/pets">
+                <Button size="lg" className="btn-neutral">
+                  <Heart className="mr-2" size={20} />
+                  Adopt Now
+                </Button>
+              </Link>
+              <Link to="/donations">
+                <Button size="lg" variant="outline">
+                  Donate Today
                 </Button>
               </Link>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="text-center p-6 bg-blue-50 dark:bg-blue-900 rounded-xl">
-                <Users size={48} className="mx-auto mb-4 text-blue-600" />
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">500+</h3>
-                <p className="text-gray-600 dark:text-gray-300">Happy Families</p>
-              </div>
-              <div className="text-center p-6 bg-green-50 dark:bg-green-900 rounded-xl">
-                <Heart size={48} className="mx-auto mb-4 text-green-600" />
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">750+</h3>
-                <p className="text-gray-600 dark:text-gray-300">Pets Adopted</p>
-              </div>
-              <div className="text-center p-6 bg-purple-50 dark:bg-purple-900 rounded-xl">
-                <Award size={48} className="mx-auto mb-4 text-purple-600" />
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">$50K+</h3>
-                <p className="text-gray-600 dark:text-gray-300">Funds Raised</p>
-              </div>
-              <div className="text-center p-6 bg-yellow-50 dark:bg-yellow-900 rounded-xl">
-                <PawPrint size={48} className="mx-auto mb-4 text-yellow-600" />
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">24/7</h3>
-                <p className="text-gray-600 dark:text-gray-300">Support Available</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Success Stories */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Success Stories
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Real stories from families who found their perfect companions
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "Sarah & Max",
-                story: "Max was shy when we first met, but now he's the most loving dog. He's brought so much joy to our family!",
-                image: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-              },
-              {
-                name: "John & Luna",
-                story: "Luna was a rescue cat who needed special care. Thanks to PawsHome, we found each other and she's thriving!",
-                image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-              },
-              {
-                name: "Emma & Buddy",
-                story: "Buddy has been the perfect addition to our family. The adoption process was smooth and supportive.",
-                image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80"
-              }
-            ].map((story, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-                <img
-                  src={story.image}
-                  alt={story.name}
-                  className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-3">
-                  {story.name}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 text-center italic">
-                  "{story.story}"
-                </p>
-              </div>
-            ))}
           </div>
         </div>
       </section>

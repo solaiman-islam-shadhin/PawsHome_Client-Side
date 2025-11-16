@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User, LogOut, Settings } from 'lucide-react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Menu, X, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import Button from '../ui/Button';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+ 
+  const [, setIsProfileOpen] = useState(false);
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -20,175 +18,117 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Pet Listing', path: '/pets' },
-    { name: 'Donation Campaigns', path: '/donations' },
+    { name: 'Pets', path: '/pets' },
+    { name: 'Donations', path: '/donations' },
   ];
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🐾</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                PawsHome
-              </span>
-            </Link>
-          </div>
+    <div className="navbar bg-base-100 shadow-lg sticky top-0 z-40">
+      <div className="navbar-start">
+        <Link to="/" className="btn btn-ghost text-xl font-heading font-bold">
+          <span className="text-2xl">🐾</span>
+          PawsHome
+        </Link>
+      </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+      <div className="navbar-center hidden lg:flex">
+        <ul className="menu menu-horizontal px-1">
+          {navLinks.map((link) => (
+            <li key={link.name}>
+              <NavLink 
+                to={link.path} 
+                className={({ isActive }) => 
+                  `font-body font-medium ${isActive ? 'bg-primary text-primary-content rounded-lg' : 'hover:bg-base-200'}`
+                }
               >
                 {link.name}
-              </Link>
-            ))}
-          </div>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-          {/* Right side */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+      <div className="navbar-end">
+        {/* Theme Toggle */}
+        <label className="swap swap-rotate mr-4">
+          <input type="checkbox" className="theme-controller" value="cupcake" />
+          
+          {/* sun icon */}
+          <svg
+            className="swap-off h-6 w-6 fill-current"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24">
+            <path
+              d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z" />
+          </svg>
 
-            {user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <img
-                    src={user.photoURL || '/default-avatar.png'}
-                    alt={user.displayName}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {user.displayName}
-                  </span>
-                </button>
+          {/* moon icon */}
+          <svg
+            className="swap-on h-6 w-6 fill-current"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24">
+            <path
+              d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
+          </svg>
+        </label>
 
-                {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50">
-                    <Link
-                      to="/dashboard"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <Settings size={16} className="mr-2" />
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <LogOut size={16} className="mr-2" />
-                      Logout
-                    </button>
-                  </div>
-                )}
+        {user ? (
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+              <div className="w-10 rounded-full">
+                <img
+                  alt={user.displayName}
+                  src={user.photoURL || '/default-avatar.png'}
+                />
               </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/login">
-                  <Button variant="outline" size="sm">Login</Button>
-                </Link>
-                <Link to="/register">
-                  <Button size="sm">Register</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-500 dark:text-gray-400"
-            >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 text-gray-500 dark:text-gray-400"
-            >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 block px-3 py-2 rounded-md text-base font-medium"
-                  onClick={() => setIsOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              
-              {user ? (
-                <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center px-3">
-                    <img
-                      src={user.photoURL || '/default-avatar.png'}
-                      alt={user.displayName}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div className="ml-3">
-                      <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                        {user.displayName}
-                      </div>
-                      <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                        {user.email}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-3 space-y-1">
-                    <Link
-                      to="/dashboard"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="pt-4 pb-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
-                  <Link to="/login" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="w-full">Login</Button>
-                  </Link>
-                  <Link to="/register" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full">Register</Button>
-                  </Link>
-                </div>
-              )}
             </div>
+            <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+              <li>
+                <Link to="/dashboard" className="font-body">
+                  <Settings size={16} />
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <button onClick={handleLogout} className="font-body">
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </li>
+            </ul>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <Link to="/login">
+              <Button variant="outline" size="sm">Login</Button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm">Register</Button>
+            </Link>
           </div>
         )}
+
+        <div className="dropdown lg:hidden">
+          <div tabIndex={0} role="button" className="btn btn-ghost">
+            <Menu size={24} />
+          </div>
+          <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+            {navLinks.map((link) => (
+              <li key={link.name}>
+                <NavLink 
+                  to={link.path} 
+                  className={({ isActive }) => 
+                    `font-body font-medium ${isActive ? 'bg-primary text-primary-content' : ''}`
+                  }
+                >
+                  {link.name}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </nav>
+    </div>
   );
 };
 

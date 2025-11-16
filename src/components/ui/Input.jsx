@@ -9,24 +9,26 @@ const Input = forwardRef(({
   ...props 
 }, ref) => {
   return (
-    <div className="space-y-1">
+    <div className="form-control w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {label}
+        <label className="label">
+          <span className="label-text font-heading font-semibold">{label}</span>
         </label>
       )}
       <input
         type={type}
         className={cn(
-          'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500',
-          error && 'border-red-500 focus:ring-red-500',
+          'input input-bordered w-full font-body',
+          error && 'input-error',
           className
         )}
         ref={ref}
         {...props}
       />
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <label className="label">
+          <span className="label-text-alt text-error font-body">{error}</span>
+        </label>
       )}
     </div>
   );

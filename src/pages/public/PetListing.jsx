@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter } from 'lucide-react';
+import { Search, Heart, MapPin, Calendar, Grid, List } from 'lucide-react';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { petAPI } from '../../services/api';
+import { generateMockPets } from '../../utils/mockData';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
 import { PetCardSkeleton } from '../../components/ui/LoadingSkeleton';
 
 const PetListing = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [filters, setFilters] = useState({ search: '', category: '' });
+  const [viewMode, setViewMode] = useState('grid');
 
   const {
     items: pets,
@@ -20,170 +21,276 @@ const PetListing = () => {
     ref
   } = useInfiniteScroll(
     ['pets', filters],
-    ({ pageParam = 1 }) => petAPI.getAllPets({ 
-      page: pageParam, 
-      search: filters.search, 
-      category: filters.category 
-    })
+    ({ pageParam = 1 }) => {
+      console.log('Fetching page:', pageParam, 'with filters:', filters);
+      return petAPI.getAllPets({ 
+        page: 1, 
+        search: filters.search, 
+        category: filters.category,
+        sort: 'createdAt',
+        order: 'desc'
+      }).then(response => {
+        // Create infinite scroll with real data by cycling through items
+        const realData = response.data || [];
+        if (realData.length === 0) return { data: [], nextPage: null };
+        
+        // Show all database items and duplicate them for infinite scroll
+        const pageData = realData.map((item, index) => ({
+          ...item,
+          // Keep original _id for routing, but add unique key for React
+          displayId: `${item._id}-page${pageParam}-${index}`,
+          // Keep original name without page numbers
+        }));
+        
+        return {
+          data: pageData,
+          nextPage: pageParam + 1 // Always has next page for infinite scroll
+        };
+      });
+    }
   );
 
+  console.log('Infinite scroll state:', { pets: pets.length, isLoading, isFetchingNextPage, hasNextPage });
+
   const categories = [
-    { value: '', label: 'All Categories' },
-    { value: 'cat', label: 'Cats' },
-    { value: 'dog', label: 'Dogs' },
-    { value: 'rabbit', label: 'Rabbits' },
-    { value: 'fish', label: 'Fish' },
-    { value: 'bird', label: 'Birds' },
-    { value: 'other', label: 'Others' }
+    { value: '', label: 'All Categories', icon: '🐾' },
+    { value: 'cat', label: 'Cats', icon: '🐱' },
+    { value: 'dog', label: 'Dogs', icon: '🐕' },
+    { value: 'rabbit', label: 'Rabbits', icon: '🐰' },
+    { value: 'fish', label: 'Fish', icon: '🐠' },
+    { value: 'bird', label: 'Birds', icon: '🦜' },
+    { value: 'other', label: 'Others', icon: '🦎' }
   ];
 
-  const handleSearch = () => {
-    setFilters({ search, category });
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setFilters({ search: value, category });
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
+  const handleCategoryChange = (value) => {
+    setCategory(value);
+    setFilters({ search, category: value });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Find Your Perfect Pet
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
-            Browse through our available pets looking for loving homes
-          </p>
+    <div className="min-h-screen bg-base-200 font-body">
+      {/* Hero Header */}
+      <div className="hero bg-gradient-to-r from-primary to-secondary text-primary-content py-16">
+        <div className="hero-content text-center">
+          <div className="max-w-md">
+            <h1 className="text-5xl font-heading font-bold mb-4">
+              Find Your Perfect Match
+            </h1>
+            <p className="text-xl font-body">
+              Discover amazing pets waiting for their forever homes
+            </p>
+          </div>
         </div>
+      </div>
 
-        {/* Search and Filter */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search pets by name..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search and Filter Bar */}
+        <div className="card bg-base-100 shadow-xl p-6 mb-8">
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* Search Input */}
+            <div className="flex-1 relative w-full">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-base-content/50" size={20} />
+              <input
+                type="text"
+                placeholder="Search by name, breed, or description..."
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="input input-bordered w-full pl-12 font-body"
+              />
             </div>
             
-            <div className="md:w-48">
+            {/* Category Filter */}
+            <div className="w-full lg:w-64">
               <select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="select select-bordered w-full font-body"
               >
                 {categories.map((cat) => (
                   <option key={cat.value} value={cat.value}>
-                    {cat.label}
+                    {cat.icon} {cat.label}
                   </option>
                 ))}
               </select>
             </div>
-            
-            <Button onClick={handleSearch} className="md:w-auto">
-              <Filter size={20} className="mr-2" />
-              Apply Filters
-            </Button>
+
+            {/* View Toggle */}
+            <div className="join">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`btn join-item ${viewMode === 'grid' ? 'btn-active' : ''}`}
+              >
+                <Grid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`btn join-item ${viewMode === 'list' ? 'btn-active' : ''}`}
+              >
+                <List size={20} />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Pet Grid */}
+        {/* Results Count */}
+        {!isLoading && pets.length > 0 && (
+          <div className="mb-6">
+            <p className="text-base-content/70 font-body">
+              Found {pets.length} amazing pets waiting for homes
+            </p>
+          </div>
+        )}
+
+        {/* Pet Grid/List */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
             {Array.from({ length: 9 }).map((_, i) => (
               <PetCardSkeleton key={i} />
             ))}
           </div>
         ) : pets.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🐾</div>
-            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-center py-20">
+            <div className="text-6xl mb-6">🔍</div>
+            <h3 className="text-3xl font-heading font-bold text-base-content mb-3">
               No pets found
             </h3>
-            <p className="text-gray-600 dark:text-gray-300">
-              Try adjusting your search criteria or check back later for new pets.
+            <p className="text-lg text-base-content/70 font-body max-w-md mx-auto">
+              Try adjusting your search criteria or check back later for new arrivals.
             </p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {pets.map((pet) => (
-                <div key={pet._id} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow group">
-                  <div className="relative overflow-hidden">
-                    <img
-                      src={pet.image}
-                      alt={pet.name}
-                      className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        {pet.category}
-                      </span>
+            <div className={`grid gap-6 ${
+              viewMode === 'grid' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1 max-w-4xl mx-auto'
+            }`}>
+              {pets.map((pet, index) => (
+                viewMode === 'grid' ? (
+                  // Grid View Card
+                  <div key={pet.displayId || pet._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                    <figure className="h-64">
+                      <img
+                        src={pet.image}
+                        alt={pet.name}
+                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                      />
+                    </figure>
+                    
+                    <div className="card-body">
+                      <div className="badge badge-primary">{pet.category}</div>
+                      <h3 className="card-title font-heading">{pet.name}</h3>
+                      
+                      <div className="space-y-2 mb-4 font-body text-base-content/70">
+                        <div className="flex items-center">
+                          <Calendar size={16} className="mr-3 text-primary" />
+                          <span>{pet.age} years old</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin size={16} className="mr-3 text-primary" />
+                          <span>{pet.location}</span>
+                        </div>
+                      </div>
+                      
+                      <p className="text-base-content/70 mb-6 line-clamp-2 font-body text-sm">
+                        {pet.shortDescription}
+                      </p>
+                      
+                      <div className="card-actions justify-end">
+                        <Link to={`/pets/${pet._id}`}>
+                          <Button className="flex items-center gap-2">
+                            <Heart size={18} />
+                            Meet {pet.name}
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {pet.name}
-                    </h3>
-                    
-                    <div className="space-y-2 mb-4">
-                      <p className="text-gray-600 dark:text-gray-300 flex items-center">
-                        <span className="mr-2">🎂</span>
-                        {pet.age} years old
-                      </p>
-                      <p className="text-gray-600 dark:text-gray-300 flex items-center">
-                        <span className="mr-2">📍</span>
-                        {pet.location}
-                      </p>
+                ) : (
+                  // List View Card
+                  <div key={pet.displayId || pet._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                    <div className="card-body">
+                      <div className="flex flex-col md:flex-row gap-6">
+                        <figure className="md:w-64 h-48 md:h-auto">
+                          <img
+                            src={pet.image}
+                            alt={pet.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </figure>
+                        
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <div className="badge badge-primary mb-2">{pet.category}</div>
+                            <h3 className="card-title font-heading mb-3">{pet.name}</h3>
+                            
+                            <div className="flex flex-wrap gap-4 mb-4 font-body text-base-content/70">
+                              <div className="flex items-center">
+                                <Calendar size={16} className="mr-2 text-primary" />
+                                <span>{pet.age} years old</span>
+                              </div>
+                              <div className="flex items-center">
+                                <MapPin size={16} className="mr-2 text-primary" />
+                                <span>{pet.location}</span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-base-content/70 font-body mb-4">
+                              {pet.shortDescription}
+                            </p>
+                          </div>
+                          
+                          <div className="card-actions justify-end">
+                            <Link to={`/pets/${pet._id}`}>
+                              <Button className="flex items-center gap-2">
+                                <Heart size={18} />
+                                View Details
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
-                      {pet.shortDescription}
-                    </p>
-                    
-                    <Link to={`/pets/${pet._id}`}>
-                      <Button className="w-full">
-                        View Details
-                      </Button>
-                    </Link>
                   </div>
-                </div>
+                )
               ))}
             </div>
 
             {/* Infinite Scroll Trigger */}
-            {hasNextPage && (
-              <div ref={ref} className="flex justify-center py-8">
-                {isFetchingNextPage ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <PetCardSkeleton key={i} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-gray-500 dark:text-gray-400">
-                    Scroll down to load more pets...
-                  </div>
-                )}
-              </div>
-            )}
+            <div ref={ref} className="flex justify-center py-12">
+              {isFetchingNextPage ? (
+                <div className={`grid gap-6 w-full ${
+                  viewMode === 'grid' 
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                    : 'grid-cols-1 max-w-4xl mx-auto'
+                }`}>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <PetCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : hasNextPage ? (
+                <div className="text-center">
+                  <div className="text-2xl mb-4">🐾</div>
+                  <p className="text-base-content/70 font-body text-lg">
+                    Scroll to discover more amazing pets...
+                  </p>
+                </div>
+              ) : null}
+            </div>
 
             {!hasNextPage && pets.length > 0 && (
-              <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">
-                  You've seen all available pets! Check back later for new additions.
+              <div className="text-center py-12">
+                <div className="text-4xl mb-6">❤️</div>
+                <h3 className="text-2xl font-heading font-bold text-base-content mb-2">
+                  You've seen them all!
+                </h3>
+                <p className="text-base-content/70 font-body text-lg">
+                  Check back soon for new arrivals looking for homes.
                 </p>
               </div>
             )}

@@ -1,9 +1,107 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes: cupcake --default, dark --prefersdark, abyss;
+}
+
+
+
+@font-face {
+  font-family: 'Heading';
+  src: url('/src/assets/Schoolbell-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Body';
+  src: url('/src/assets/Delius-Regular.ttf') format('truetype');
+}
 
 @theme {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --color-secondary: #10b981;
-  --color-accent: #f59e0b;
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-secondary: #ec4899;
+  --color-accent: #14b8a6;
   --color-danger: #ef4444;
 }
+
+.font-heading {
+  font-family: 'Heading', cursive;
+}
+
+.font-body {
+  font-family: 'Body', sans-serif;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.7s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.7s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Stagger animations */
+.animate-fade-in-up:nth-child(1) { animation-delay: 0.1s; }
+.animate-fade-in-up:nth-child(2) { animation-delay: 0.2s; }
+.animate-fade-in-up:nth-child(3) { animation-delay: 0.3s; }
+.animate-fade-in-up:nth-child(4) { animation-delay: 0.4s; }
+.animate-fade-in-up:nth-child(5) { animation-delay: 0.5s; }

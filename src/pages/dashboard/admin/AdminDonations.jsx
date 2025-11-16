@@ -125,9 +125,7 @@ const AdminDonations = () => {
                           <p className="font-medium text-gray-900 dark:text-white">
                             {campaign.petName}
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-1">
-                            {campaign.shortDescription}
-                          </p>
+                       
                         </div>
                       </div>
                     </td>
