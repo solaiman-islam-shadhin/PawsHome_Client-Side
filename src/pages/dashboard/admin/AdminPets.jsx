@@ -113,6 +113,7 @@ const AdminPets = () => {
                         src={pet.owner?.photoURL || '/default-avatar.png'}
                         alt={pet.owner?.name}
                         className="w-8 h-8 rounded-full object-cover"
+                        referrerPolicy='no-referrer'
                       />
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">

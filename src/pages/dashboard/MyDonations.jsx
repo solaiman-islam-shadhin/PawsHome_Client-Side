@@ -145,6 +145,7 @@ const MyDonations = () => {
                           src={donation.creator?.photoURL || '/default-avatar.png'}
                           alt={donation.creator?.name}
                           className="w-8 h-8 rounded-full object-cover"
+                          referrerPolicy='no-referrer'
                         />
                         <span className="text-sm text-gray-900 dark:text-white">
                           {donation.creator?.name}

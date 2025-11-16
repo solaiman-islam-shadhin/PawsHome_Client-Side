@@ -228,6 +228,7 @@ const MyDonationCampaigns = () => {
                       src={donation.donor?.photoURL || '/default-avatar.png'}
                       alt={donation.donor?.name}
                       className="w-10 h-10 rounded-full object-cover"
+                      referrerPolicy='no-referrer'
                     />
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">

@@ -135,6 +135,7 @@ const AdminDonations = () => {
                           src={campaign.creator?.photoURL || '/default-avatar.png'}
                           alt={campaign.creator?.name}
                           className="w-8 h-8 rounded-full object-cover"
+                          referrerPolicy='no-referrer'
                         />
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">

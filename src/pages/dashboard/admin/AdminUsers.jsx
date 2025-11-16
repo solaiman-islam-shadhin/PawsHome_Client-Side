@@ -89,6 +89,7 @@ const AdminUsers = () => {
                         src={user.photoURL || '/default-avatar.png'}
                         alt={user.name}
                         className="w-10 h-10 rounded-full object-cover"
+                        referrerPolicy='no-referrer'
                       />
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white">
