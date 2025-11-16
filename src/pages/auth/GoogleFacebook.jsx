@@ -1,6 +1,4 @@
 
-
-import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLocation, useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
@@ -9,8 +7,8 @@ import { Facebook } from 'lucide-react'; // Using Lucide React for the Facebook 
 
 export const GoogleFacebook = () => {
     // Assuming useAuth now provides loginWithFacebook
-    const { loginWithGoogle, loginWithFacebook } = useAuth(); 
-    const [loading, setLoading] = useState(false);
+    const { loginWithGoogle, loginWithFacebook ,loading, setLoading} = useAuth(); 
+  
 
     const navigate = useNavigate();
     const location = useLocation();

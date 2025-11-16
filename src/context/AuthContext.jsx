@@ -2,20 +2,20 @@ import { createContext, useContext, useEffect, useState } from 'react';
 
 import {
 
-  signInWithEmailAndPassword,
+    signInWithEmailAndPassword,
 
-  createUserWithEmailAndPassword,
+    createUserWithEmailAndPassword,
 
-  signOut,
+    signOut,
 
-  onAuthStateChanged,
+    onAuthStateChanged,
 
-  GoogleAuthProvider,
+    GoogleAuthProvider,
 
-  signInWithPopup,
+    signInWithPopup,
 
-  updateProfile,
-  FacebookAuthProvider
+    updateProfile,
+    FacebookAuthProvider
 
 } from 'firebase/auth';
 
@@ -31,15 +31,15 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
 
-  const context = useContext(AuthContext);
+    const context = useContext(AuthContext);
 
-  if (!context) {
+    if (!context) {
 
-    throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error('useAuth must be used within an AuthProvider');
 
-  }
+    }
 
-  return context;
+    return context;
 
 };
 
@@ -47,19 +47,93 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
 
-  const [user, setUser] = useState(null);
+    const [user, setUser] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
 
 
-  useEffect(() => {
+    useEffect(() => {
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 
-      if (firebaseUser) {
+            if (firebaseUser) {
 
-        const token = await firebaseUser.getIdToken();
+                const token = await firebaseUser.getIdToken();
+
+                localStorage.setItem('token', token);
+
+
+
+                try {
+
+                    const dbUser = await authAPI.getMe();
+
+                    setUser({
+
+                        ...firebaseUser,
+
+                        role: dbUser.role,
+
+                        uid: firebaseUser.uid
+
+                    });
+
+                } catch (error) {
+
+                    console.error('Error fetching user role:', error);
+
+                    setUser(firebaseUser);
+
+                }
+
+            } else {
+
+                localStorage.removeItem('token');
+
+                setUser(null);
+
+            }
+
+            setLoading(false);
+
+        });
+
+
+
+        return unsubscribe;
+
+    }, []);
+
+
+
+    const login = async (email, password) => {
+
+        const result = await signInWithEmailAndPassword(auth, email, password);
+
+        return result;
+
+    };
+
+
+
+    const register = async (email, password, name, photoURL) => {
+
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+
+
+
+        await updateProfile(result.user, {
+
+            displayName: name,
+
+            photoURL: photoURL
+
+        });
+
+
+
+        const token = await result.user.getIdToken();
 
         localStorage.setItem('token', token);
 
@@ -67,142 +141,68 @@ export const AuthProvider = ({ children }) => {
 
         try {
 
-          const dbUser = await authAPI.getMe();
+            await authAPI.register({
 
-          setUser({
+                name,
 
-            ...firebaseUser,
+                email,
 
-            role: dbUser.role,
+                photoURL,
 
-            uid: firebaseUser.uid
+                role: 'user'
 
-          });
+            });
 
         } catch (error) {
 
-          console.error('Error fetching user role:', error);
-
-          setUser(firebaseUser);
+            console.error('Error saving user to database:', error);
 
         }
 
-      } else {
 
-        localStorage.removeItem('token');
 
-        setUser(null);
+        return result;
 
-      }
-
-      setLoading(false);
-
-    });
+    };
 
 
 
-    return unsubscribe;
+    const loginWithGoogle = async () => {
 
-  }, []);
+        const provider = new GoogleAuthProvider()
+        const result = await signInWithPopup(auth, provider);
+        const token = await result.user.getIdToken();
+        localStorage.setItem('token', token);
+        try {
 
+            await authAPI.register({
+                name: result.user.displayName,
+                email: result.user.email,
+                photoURL: result.user.photoURL,
+                role: 'user'
+            });
 
+        } catch (error) {
+            console.error('Error saving user to database:', error);
 
-  const login = async (email, password) => {
+        }
+        return result;
 
-    const result = await signInWithEmailAndPassword(auth, email, password);
-
-    return result;
-
-  };
-
-
-
-  const register = async (email, password, name, photoURL) => {
-
-    const result = await createUserWithEmailAndPassword(auth, email, password);
-
-
-
-    await updateProfile(result.user, {
-
-      displayName: name,
-
-      photoURL: photoURL
-
-    });
+    };
 
 
-
-    const token = await result.user.getIdToken();
-
-    localStorage.setItem('token', token);
-
-
-
-    try {
-
-      await authAPI.register({
-
-        name,
-
-        email,
-
-        photoURL,
-
-        role: 'user'
-
-      });
-
-    } catch (error) {
-
-      console.error('Error saving user to database:', error);
-
-    }
-
-
-
-    return result;
-
-  };
-
-
-
-  const loginWithGoogle = async () => {
-
-    const provider = new GoogleAuthProvider()
-    const result = await signInWithPopup(auth, provider);
-    const token = await result.user.getIdToken();
-    localStorage.setItem('token', token);
-    try {
-
-      await authAPI.register({
-        name: result.user.displayName,
-        email: result.user.email,
-        photoURL: result.user.photoURL,
-        role: 'user'
-      });
-
-    } catch (error) {
-      console.error('Error saving user to database:', error);
-
-    }
-    return result;
-
-  };
-
-
-  const loginWithFacebook = async () => {
+const loginWithFacebook = async () => {
     const provider = new FacebookAuthProvider();
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider); 
     const token = await result.user.getIdToken();
     localStorage.setItem('token', token);
-
+    
     try {
       await authAPI.register({
         name: result.user.displayName,
         email: result.user.email,
         photoURL: result.user.photoURL,
-        role: 'user'
+        role: 'user' 
       });
     } catch (error) {
       console.error('Error saving user to database after Facebook login:', error);
@@ -211,41 +211,42 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
-  const logout = async () => {
+    const logout = async () => {
 
-    await signOut(auth);
+        await signOut(auth);
 
-  };
-
-
-
-  const value = {
-
-    user,
-
-    login,
-
-    register,
-
-    loginWithGoogle,
-
-    logout,
-
-    loading,
-    loginWithFacebook
-
-  };
+    };
 
 
 
-  return (
+    const value = {
 
-    <AuthContext.Provider value={value}>
+        user,
 
-      {children}
+        login,
 
-    </AuthContext.Provider>
+        register,
 
-  );
+        loginWithGoogle,
+
+        logout,
+
+        loading,
+        setLoading,
+        loginWithFacebook
+
+    };
+
+
+
+    return (
+
+        <AuthContext.Provider value={value}>
+
+            {children}
+
+        </AuthContext.Provider>
+
+    );
 
 };

@@ -17,8 +17,8 @@ const schema = yup.object({
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { login, } = useAuth();
+  
+  const { login,loading, setLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
