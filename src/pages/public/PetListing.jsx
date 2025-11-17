@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Search, Heart, MapPin, Calendar, Grid, List } from 'lucide-react';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { petAPI } from '../../services/api';
-import { generateMockPets } from '../../utils/mockData';
 import Button from '../../components/ui/Button';
 import { PetCardSkeleton } from '../../components/ui/LoadingSkeleton';
 
@@ -170,7 +169,7 @@ const PetListing = () => {
                 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                 : 'grid-cols-1 max-w-4xl mx-auto'
             }`}>
-              {pets.map((pet, index) => (
+              {pets.map((pet) => (
                 viewMode === 'grid' ? (
                   // Grid View Card
                   <div key={pet.displayId || pet._id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">

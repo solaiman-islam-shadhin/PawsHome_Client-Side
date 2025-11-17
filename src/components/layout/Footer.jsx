@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link} from "react-router-dom";
+
 import { Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Send } from 'lucide-react';
 
 const Footer = () => {
@@ -21,10 +22,10 @@ const Footer = () => {
               Get updates on new pets, adoption success stories, and ways to help
             </p>
             <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="input input-bordered flex-1 text-base-content" 
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input input-bordered flex-1 text-base-content"
               />
               <button className="btn btn-secondary">
                 <Send size={16} className="mr-2" />
@@ -51,16 +52,18 @@ const Footer = () => {
               <span className="text-sm font-medium">Made with love for our furry friends</span>
             </div>
           </aside>
-          
+
           <nav>
             <h6 className="footer-title font-heading text-lg mb-4">Quick Links</h6>
-            <Link to="/" className="link link-hover font-body hover:text-primary transition-colors">🏠 Home</Link>
-            <Link to="/pets" className="link link-hover font-body hover:text-primary transition-colors">🐕 Pet Listing</Link>
-            <Link to="/donations" className="link link-hover font-body hover:text-primary transition-colors">💝 Donations</Link>
-            <Link to="/about" className="link link-hover font-body hover:text-primary transition-colors">ℹ️ About Us</Link>
-            <Link to="/contact" className="link link-hover font-body hover:text-primary transition-colors">📞 Contact</Link>
+            <div className='flex flex-col space-y-2'>
+              <Link to="/" className="link link-hover font-body hover:text-primary transition-colors">🏠 Home</Link>
+              <Link to="/pets" className="link link-hover font-body hover:text-primary transition-colors">🐕 Pet Listing</Link>
+              <Link to="/donations" className="link link-hover font-body hover:text-primary transition-colors">💝 Donations</Link>
+              <Link to="/about" smooth={true} duration={50} className="link link-hover font-body hover:text-primary transition-colors">ℹ️ About Us</Link>
+              <Link to="/contact" className="link link-hover font-body hover:text-primary transition-colors">📞 Contact</Link>
+            </div>
           </nav>
-          
+
           <nav>
             <h6 className="footer-title font-heading text-lg mb-4">Get In Touch</h6>
             <div className="space-y-3">
@@ -108,7 +111,7 @@ const Footer = () => {
             </div>
           </nav>
         </div>
-        
+
         {/* Bottom Bar */}
         <div className="border-t border-base-content/10">
           <div className="footer footer-center p-6 bg-base-300/50">

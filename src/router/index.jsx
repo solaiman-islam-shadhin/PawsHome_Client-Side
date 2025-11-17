@@ -32,6 +32,9 @@ import AdminDonations from "../pages/dashboard/admin/AdminDonations";
 // Protected Route Components
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminRoute from "../components/AdminRoute";
+import { AboutUS } from "../pages/public/AboutUS";
+import { ContactUS } from "../pages/public/ContactUS";
+
 
 const router = createBrowserRouter([
   {
@@ -53,6 +56,14 @@ const router = createBrowserRouter([
       {
         path: "donations",
         Component: DonationCampaigns
+      },
+      {
+        path: "about",
+        Component: AboutUS
+      },
+      {
+        path: "contact",
+        Component : ContactUS
       },
       {
         path: "donations/:id",
