@@ -14,7 +14,7 @@ export const GoogleFacebook = () => {
     const location = useLocation();
 
     // Determine the redirect path after successful login
-    const from = location.state?.from?.pathname || '/dashboard';
+    const from = location.state?.from?.pathname || '/';
 
     // Handler for Google Login
     const handleGoogleLogin = async () => {

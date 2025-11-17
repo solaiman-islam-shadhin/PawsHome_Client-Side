@@ -60,7 +60,7 @@ const Register = () => {
 
       await registerUser(data.email, data.password, data.name, photoURL);
       toast.success('Registration successful!');
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       toast.error(error.message || 'Registration failed');
     } finally {
